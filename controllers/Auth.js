@@ -8,7 +8,8 @@ require("dotenv").config();
 exports.signup = async (req, res) => {
   try {
     // get data
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
+    console.log(req.body);
     // check if the user is already present
     const existingUser = await User.findOne({ email });
 
@@ -35,12 +36,21 @@ exports.signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role,
+    });
+
+    const payload = {
+      email: user.email,
+      id: user._id, //do check this syntax for _id
+    };
+
+    let token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "2h",
     });
 
     return res.status(200).json({
       success: true,
       message: "User created Successfully",
+      token,
       user,
     });
   } catch (error) {
@@ -69,7 +79,6 @@ exports.login = async (req, res) => {
     const payload = {
       email: user.email,
       id: user._id, //do check this syntax for _id
-      role: user.role,
     };
 
     // verify password and generate jwt token
